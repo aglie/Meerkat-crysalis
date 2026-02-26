@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "meerkat-crysalis"
+version = "0.1.0"
+description = "Reciprocal space reconstruction from CrysAlis Pro frm2hkl exports"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "numpy",
+]
+
+[project.scripts]
+meerkat-crysalis = "meerkat_crysalis.reconstruct:main"
