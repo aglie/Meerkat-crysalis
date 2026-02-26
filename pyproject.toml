@@ -7,6 +7,7 @@ name = "meerkat-crysalis"
 version = "0.1.0"
 description = "Reciprocal space reconstruction from CrysAlis Pro frm2hkl exports"
 readme = "README.md"
+license = {file = "LICENSE"}
 requires-python = ">=3.8"
 dependencies = [
     "numpy",
