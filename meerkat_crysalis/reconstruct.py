@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
+import re
+
 import numpy as np
+import h5py
 import argparse
 import os
 from glob import glob
@@ -141,7 +144,7 @@ def main():
     cell = extract_unit_cell(log_file)
 
     # Save to Yell format
-    with h5py.File('reconstruction.h5', 'w') as result:
+    with h5py.File(args.out, 'w') as result:
         result['data']=reconstructed_volume
         result['format']=b"Yell 1.0"
         result['unit_cell'] = cell

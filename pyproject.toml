@@ -1,6 +1,6 @@
 [build-system]
 requires = ["setuptools>=61"]
-build-backend = "setuptools.backends.legacy:build"
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "meerkat-crysalis"
@@ -11,6 +11,7 @@ license = {file = "LICENSE"}
 requires-python = ">=3.8"
 dependencies = [
     "numpy",
+    "h5py",
 ]
 
 [project.scripts]
