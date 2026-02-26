@@ -31,7 +31,7 @@ def read_corrections(fname):
     raw = np.fromfile(fname, dtype=np.float32, offset=36*256)
     data = raw.reshape(h, w, -1)
     # Return Polarization (p) and Solid Angle (sa)
-    return data[..., 0], data[..., 4]
+    return data[..., 1], data[..., 4]
 
 def main():
     parser = argparse.ArgumentParser(
