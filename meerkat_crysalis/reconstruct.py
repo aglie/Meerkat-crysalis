@@ -5,6 +5,35 @@ import os
 from glob import glob
 from sys import stdout
 
+
+
+def extract_unit_cell(log_file):
+    """
+    Parses unit cell parameters from CrysAlis FRM2XYZ log file.
+    Returns: np.array([a, b, c, alpha, beta, gamma])
+    """
+    with open(log_file, 'r') as f:
+        content = f.read()
+
+    # Find the block starting with "unit cell:"
+    # This regex looks for the header and grabs the next two lines of numbers
+    pattern = r"unit cell:\s*\n\s*([\d\.\(\)]+\s+[\d\.\(\)]+\s+[\d\.\(\)]+)\s*\n\s*([\d\.\(\)]+\s+[\d\.\(\)]+\s+[\d\.\(\)]+)"
+    match = re.search(pattern, content)
+
+    if not match:
+        raise ValueError("Could not find 'unit cell:' block in log file.")
+
+    # Combine the two lines into one string of 6 values
+    raw_values = match.group(1) + " " + match.group(2)
+    
+    # Remove error bars: e.g., '26.1803(6)' -> '26.1803'
+    clean_values = re.sub(r'\(\d+\)', '', raw_values)
+    
+    # Convert to float array
+    cell = np.array([float(x) for x in clean_values.split()])
+    
+    return cell
+
 def get_esperanto_dims(fname):
     """Extracts (width, height) from the 9216-byte Esperanto header."""
     HEADER_SIZE = 36 * 256
@@ -51,6 +80,7 @@ def main():
     max_ind = -min_ind
     step_sizes = (max_ind - min_ind) / (final_size - 1)
     inv_step_sizes = 1.0 / step_sizes
+
 
     # Grouping Logic
     lp_files = sorted(glob(os.path.join(args.folder, '*.fhkl_lp')))
@@ -101,14 +131,23 @@ def main():
                 stdout.write(f"\r  Frame {i}/{len(run_frames)}")
                 stdout.flush()
 
-    # Normalize across all runs
     print("\nNormalizing volume...")
+    #TODO: fix this. Different runs should be noramlized separately.
     with np.errstate(divide='ignore', invalid='ignore'):
         reconstructed_volume = volume_data / volume_counts
-        # Clean up NaNs from zero-count voxels
-        reconstructed_volume[volume_counts == 0] = 0
+        # we do not clean up NaNs, as they mark unreconstructed voxels.
 
-    np.save(args.out, reconstructed_volume)
+    log_file = glob(os.path.join(args.folder, 'frm2xyzlog.txt'))[0]
+    cell = extract_unit_cell(log_file)
+
+    # Save to Yell format
+    with h5py.File('reconstruction.h5', 'w') as result:
+        result['data']=reconstructed_volume
+        result['format']=b"Yell 1.0"
+        result['unit_cell'] = cell
+        result["step_sizes"] = step_sizes
+        result["lower_limits"] = min_ind
+        result['is_direct'] = False
     print(f"Success! Volume saved to {args.out}")
 
 if __name__ == "__main__":
